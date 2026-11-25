@@ -1,0 +1,413 @@
+{
+  "info": {
+    "_postman_id": "a133d61a-816a-4b1c-af2d-3707a6aa955f",
+    "name": "MicroservicesTP — Atelier 8",
+    "description": "Collection Postman du TP « Introduction aux Microservices avec ASP.NET Core » (PDF p. 27-29 et p. 51-52).\n\nDossiers 00 à 02 : lecture seule.\nDossier 03 : mutation contrôlée — le POST ajoute un produit dans Products.db et déclenche ProductCreated ; la projection doit apparaître dans Orders.db.\n\nNe pas exécuter le dossier 03 sur une base dont les données ne doivent pas être modifiées. Le dossier ne contient volontairement aucun DELETE : supprimer un produit dans ProductsAPI ne supprime pas sa projection dans OrdersAPI (pas d'événement ProductDeleted dans le PDF).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 — Santé (lecture seule)",
+      "description": "Vérifie que les trois services et le broker répondent. Aucune écriture.",
+      "item": [
+        {
+          "name": "Gateway — GET /apigateway/Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Corps JSON', () => pm.response.to.be.json);",
+                  "pm.test('Tableau de produits', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gatewayUrl}}/apigateway/Products"
+          }
+        },
+        {
+          "name": "ProductsAPI — Swagger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{productsUrl}}/swagger/index.html"
+          }
+        },
+        {
+          "name": "OrdersAPI — Swagger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{ordersUrl}}/swagger/index.html"
+          }
+        },
+        {
+          "name": "RabbitMQ — Overview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Broker RabbitMQ', () => pm.expect(pm.response.json().product_name).to.eql('RabbitMQ'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rabbitmqUrl}}/api/overview",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{rabbitmqUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{rabbitmqPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "RabbitMQ — file event-listener",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const queue = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('File event-listener', () => pm.expect(queue.name).to.eql('event-listener'));",
+                  "pm.test('Au moins 1 consumer', () => pm.expect(queue.consumers).to.be.at.least(1));",
+                  "pm.test('Aucun message en attente', () => pm.expect(queue.messages).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rabbitmqUrl}}/api/queues/%2F/event-listener",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{rabbitmqUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{rabbitmqPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 — Gateway Ocelot (lecture seule)",
+      "description": "Parcours du PDF p. 27-29 : les deux microservices sont appelés via la Gateway, sans contournement.",
+      "item": [
+        {
+          "name": "Gateway — liste des produits",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const products = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tableau de produits', () => pm.expect(products).to.be.an('array'));",
+                  "if (products.length > 0) {",
+                  "  pm.collectionVariables.set('productId', products[0].productId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gatewayUrl}}/apigateway/Products"
+          }
+        },
+        {
+          "name": "Gateway — produit par identifiant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Identifiant attendu', () => pm.expect(pm.response.json().productId).to.eql(Number(pm.collectionVariables.get('productId'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gatewayUrl}}/apigateway/Products/{{productId}}"
+          }
+        },
+        {
+          "name": "Gateway — liste des commandes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tableau de commandes', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gatewayUrl}}/apigateway/Orders"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 — APIs directes (lecture seule)",
+      "description": "Vérifie les ports directs 7066 et 7065, indépendamment de la Gateway.",
+      "item": [
+        {
+          "name": "ProductsAPI — liste",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const products = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tableau de produits', () => pm.expect(products).to.be.an('array'));",
+                  "if (products.length > 0) {",
+                  "  pm.collectionVariables.set('productId', products[0].productId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{productsUrl}}/api/Products"
+          }
+        },
+        {
+          "name": "ProductsAPI — produit par identifiant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Identifiant attendu', () => pm.expect(pm.response.json().productId).to.eql(Number(pm.collectionVariables.get('productId'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{productsUrl}}/api/Products/{{productId}}"
+          }
+        },
+        {
+          "name": "OrdersAPI — liste",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tableau de commandes', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{ordersUrl}}/api/Orders"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 — Communication RabbitMQ (mutation contrôlée)",
+      "description": "Reproduit le test du PDF p. 51-52 : POST d'un produit, puis vérification de la consommation par la file event-listener. Le POST ajoute réellement une ligne dans Products.db et une projection dans Orders.db. Vérifier ensuite la projection avec la requête SQLite en lecture seule du README.",
+      "item": [
+        {
+          "name": "ProductsAPI — POST produit de test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const product = pm.response.json();",
+                  "pm.test('Produit créé avec un identifiant', () => pm.expect(product.productId).to.be.above(0));",
+                  "pm.collectionVariables.set('createdProductId', product.productId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman-{{$timestamp}}\",\n  \"stockQte\": 1,\n  \"price\": 9.99\n}"
+            },
+            "url": "{{productsUrl}}/api/Products"
+          }
+        },
+        {
+          "name": "ProductsAPI — relire le produit créé",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Identifiant du produit créé', () => pm.expect(pm.response.json().productId).to.eql(Number(pm.collectionVariables.get('createdProductId'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{productsUrl}}/api/Products/{{createdProductId}}"
+          }
+        },
+        {
+          "name": "RabbitMQ — vérifier la consommation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const queue = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('File event-listener', () => pm.expect(queue.name).to.eql('event-listener'));",
+                  "pm.test('Consumer actif', () => pm.expect(queue.consumers).to.be.at.least(1));",
+                  "pm.test('Message consommé (aucun en attente)', () => pm.expect(queue.messages).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rabbitmqUrl}}/api/queues/%2F/event-listener",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{rabbitmqUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{rabbitmqPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "gatewayUrl",
+      "value": "http://localhost:7162"
+    },
+    {
+      "key": "productsUrl",
+      "value": "http://localhost:7066"
+    },
+    {
+      "key": "ordersUrl",
+      "value": "http://localhost:7065"
+    },
+    {
+      "key": "rabbitmqUrl",
+      "value": "http://localhost:15672"
+    },
+    {
+      "key": "rabbitmqUser",
+      "value": "guest"
+    },
+    {
+      "key": "rabbitmqPassword",
+      "value": "guest"
+    },
+    {
+      "key": "productId",
+      "value": "1"
+    }
+  ]
+}

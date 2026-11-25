@@ -1,0 +1,23 @@
+# Chemin Docker optionnel — reproduit le PDF (p. 35, 41, 51).
+# NON EXÉCUTÉ sur le poste de livraison : RabbitMQ natif Homebrew reste le défaut (5672).
+#
+#   docker compose -f docker/docker-compose.rabbitmq.yml up -d
+#
+# Puis lancer les API avec RabbitMq__Port=4001 (voir docker/README.md).
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ecomm
+    hostname: ecomm
+    ports:
+      - "4001:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

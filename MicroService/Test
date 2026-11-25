@@ -1,0 +1,50 @@
+# CREATE
+curl -i -X POST http://localhost:7066/api/Products \
+-H "Content-Type: application/json" \
+-d '{"name":"Test API","stockQte":20,"price":150.50}'
+
+# READ ALL
+curl -i http://localhost:7066/api/Products
+
+# READ BY ID
+curl -i http://localhost:7066/api/Products/1
+
+# UPDATE
+curl -i -X PUT http://localhost:7066/api/Products/1 \
+-H "Content-Type: application/json" \
+-d '{"productId":1,"name":"Product Updated","stockQte":30,"price":200}'
+
+# DELETE
+curl -i -X DELETE http://localhost:7066/api/Products/1
+
+
+# CREATE PRODUCT (publication ProductCreated)
+curl -i -X POST http://localhost:7066/api/Products \
+-H "Content-Type: application/json" \
+-d '{"name":"RabbitMQ-Test","stockQte":15,"price":99.90}'
+
+# VÉRIFIER LA PERSISTANCE PRODUCTS
+sqlite3 ProductsAPI/Products.db \
+"SELECT ProductId, Name FROM Products ORDER BY ProductId DESC LIMIT 5;"
+
+# VÉRIFIER LA PROJECTION ORDERS
+sqlite3 OrdersAPI/Orders.db \
+"SELECT Id, Name FROM Products ORDER BY Id DESC LIMIT 5;"
+
+# VÉRIFIER LA QUEUE RABBITMQ
+curl -s -u guest:guest \
+http://localhost:15672/api/queues/%2F/event-listener
+
+
+# AFFICHER TOUS LES PRODUITS
+curl -i http://localhost:7162/apigateway/Products
+
+# AFFICHER UN PRODUIT
+curl -i http://localhost:7162/apigateway/Products/1
+
+# AFFICHER TOUTES LES COMMANDES
+curl -i http://localhost:7162/apigateway/Orders
+
+# AFFICHER UNE COMMANDE
+curl -i http://localhost:7162/apigateway/Orders/6
+

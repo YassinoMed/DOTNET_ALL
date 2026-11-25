@@ -1,0 +1,37 @@
+# =============================================================================
+# .gitignore — SecureAPI_JWT (TP 9)
+# =============================================================================
+
+# --- Fichiers de configuration sensibles (ne jamais committer) ---
+appsettings.Development.json
+*.usersecrets
+secrets.json
+
+# --- Base de données SQLite locale ---
+*.db
+*.db-shm
+*.db-wal
+
+# --- Build / sortie ---
+bin/
+obj/
+out/
+*.user
+*.cache
+
+# --- IDE / éditeur ---
+.vs/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sln.x
+
+# --- Temporary / logs ---
+*.log
+tmp/
+temp/
+
+# --- macOS ---
+.DS_Store

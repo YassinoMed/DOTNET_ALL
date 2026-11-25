@@ -1,0 +1,18 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4 d-flex justify-content-between align-items-center">
+            <span class="fw-semibold text-secondary">Atelier 10 — ASP.NET Core Blazor WebAssembly</span>
+            <a href="EmployeeList" class="text-decoration-none">Directory</a>
+        </div>
+
+        <article class="content px-4 pb-5">
+            @Body
+        </article>
+    </main>
+</div>

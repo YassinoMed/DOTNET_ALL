@@ -1,0 +1,82 @@
+@page "/"
+@inject IEmployeeService EmployeeService
+@inject IDepartmentService DepartmentService
+
+<PageTitle>Home - Employee Management</PageTitle>
+
+<div class="py-3">
+    <h1 class="mb-2">Employee Management</h1>
+    <p class="text-muted mb-4">
+        Blazor WebAssembly client connected to the ASP.NET Core REST API and SQLite database.
+    </p>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small">Employees</h6>
+                    <div class="display-6 fw-bold text-primary">@(_isLoading ? "..." : _employeeCount.ToString())</div>
+                    <p class="card-text text-muted small mt-2">Active records stored in SQLite.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small">Departments</h6>
+                    <div class="display-6 fw-bold text-success">@(_isLoading ? "..." : _departmentCount.ToString())</div>
+                    <p class="card-text text-muted small mt-2">Available organizational units.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase text-muted small">Quick Actions</h6>
+                        <p class="card-text text-muted small">Browse, inspect, edit, or register employees.</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="EmployeeList" class="btn btn-primary btn-sm">View Employees</a>
+                        <a href="editemployee" class="btn btn-outline-primary btn-sm">Add Employee</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="alert alert-warning" role="alert">
+            @_errorMessage
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private int _employeeCount;
+    private int _departmentCount;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var employeesTask = EmployeeService.GetEmployees();
+            var departmentsTask = DepartmentService.GetDepartments();
+            await Task.WhenAll(employeesTask, departmentsTask);
+
+            _employeeCount = (await employeesTask).Count();
+            _departmentCount = (await departmentsTask).Count();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Could not reach the backend API: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

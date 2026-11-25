@@ -1,0 +1,35 @@
+# .NET
+bin/
+obj/
+*/bin/
+*/obj/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# macOS
+.DS_Store
+._*
+
+# Build outputs
+*.dll
+*.exe
+*.pdb
+*.cache
+*.dll.config
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Node/npm (si présent)
+node_modules/
+
+# Logs
+*.log

@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+
+# Bases SQLite locales (jamais versionnées)
+*.db
+*.db-shm
+*.db-wal
+
+# Journaux et PID des scripts locaux
+logs/
+*.pid
+
+# Configuration locale contenant d'éventuels secrets
+appsettings.*.local.json
+.env
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# macOS
+.DS_Store

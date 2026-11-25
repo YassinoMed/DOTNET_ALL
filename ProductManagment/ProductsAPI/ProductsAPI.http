@@ -1,0 +1,43 @@
+@ProductsAPI_HostAddress = http://localhost:5080
+
+### Liste des produits
+GET {{ProductsAPI_HostAddress}}/api/Product
+Accept: application/json
+
+### Produit par id
+GET {{ProductsAPI_HostAddress}}/api/Product/1
+Accept: application/json
+
+### Produit inexistant
+GET {{ProductsAPI_HostAddress}}/api/Product/99999
+Accept: application/json
+
+### Créer un produit
+POST {{ProductsAPI_HostAddress}}/api/Product
+Content-Type: application/json
+
+{
+  "name": "Mechanical Keyboard",
+  "description": "RGB keyboard",
+  "price": 149.99,
+  "stock": 12
+}
+
+### Modifier un produit
+PUT {{ProductsAPI_HostAddress}}/api/Product/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Laptop Pro",
+  "description": "Updated laptop",
+  "price": 1800.00,
+  "stock": 8
+}
+
+### Supprimer un produit
+DELETE {{ProductsAPI_HostAddress}}/api/Product/4
+
+### Swagger
+GET {{ProductsAPI_HostAddress}}/swagger/v1/swagger.json
+Accept: application/json

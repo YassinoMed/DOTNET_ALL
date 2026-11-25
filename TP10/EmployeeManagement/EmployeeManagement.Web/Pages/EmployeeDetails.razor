@@ -1,0 +1,106 @@
+@page "/EmployeeDetails/{Id}"
+@page "/EmployeeDetails"
+@inherits EmployeeDetailsBase
+
+<PageTitle>Employee Details</PageTitle>
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="">Home</a></li>
+        <li class="breadcrumb-item"><a href="EmployeeList">Employee List</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Details</li>
+    </ol>
+</nav>
+
+@if (IsLoading)
+{
+    <div class="d-flex align-items-center gap-2 py-5 justify-content-center" role="status" aria-live="polite">
+        <div class="spinner-border text-primary" aria-hidden="true"></div>
+        <span>Loading employee details...</span>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        <h2 class="h5 mb-2">Unable to display employee</h2>
+        <p class="mb-3">@ErrorMessage</p>
+        <div class="d-flex gap-2">
+            <a href="EmployeeList" class="btn btn-primary btn-sm">Back to List</a>
+            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="LoadEmployeeAsync">Retry</button>
+        </div>
+    </div>
+}
+else if (Employee != null)
+{
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h1 class="h3 mb-0">@Employee.FirstName @Employee.LastName</h1>
+                    <span class="badge bg-info text-dark fs-6">
+                        @(Employee.Department?.DepartmentName ?? "Unassigned")
+                    </span>
+                </div>
+                <div class="card-body text-center">
+                    <img class="employee-details-photo-circle mb-2"
+                         src="@EmployeeService.ResolvePhotoUrl(Employee.PhotoPath)"
+                         onerror="this.onerror=null;this.src='images/avatar-default.svg';"
+                         alt="@($"{Employee.FirstName} {Employee.LastName}")" />
+                    <p class="text-muted small mb-3">@Employee.Email</p>
+
+                    <dl class="row text-start mt-3 mx-auto" style="max-width: 32rem;">
+                        <dt class="col-sm-5">Employee ID</dt>
+                        <dd class="col-sm-7">@Employee.EmployeeId</dd>
+
+                        <dt class="col-sm-5">First Name</dt>
+                        <dd class="col-sm-7">@Employee.FirstName</dd>
+
+                        <dt class="col-sm-5">Last Name</dt>
+                        <dd class="col-sm-7">@Employee.LastName</dd>
+
+                        <dt class="col-sm-5">Email</dt>
+                        <dd class="col-sm-7">@Employee.Email</dd>
+
+                        <dt class="col-sm-5">Date of Birth</dt>
+                        <dd class="col-sm-7">@Employee.DateOfBirth.ToString("yyyy-MM-dd")</dd>
+
+                        <dt class="col-sm-5">Gender</dt>
+                        <dd class="col-sm-7">@Employee.Gender</dd>
+
+                        <dt class="col-sm-5">Department</dt>
+                        <dd class="col-sm-7">@(Employee.Department?.DepartmentName ?? "Unassigned")</dd>
+                    </dl>
+                </div>
+                <div class="card-footer bg-white d-flex justify-content-center gap-2 flex-wrap">
+                    <a href="EmployeeList" class="btn btn-secondary">Back</a>
+                    <a href="@($"editemployee/{Employee.EmployeeId}")" class="btn btn-primary">Edit</a>
+                    <button type="button" class="btn btn-danger" @onclick="ShowDeleteConfirmation">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (ConfirmDeleteVisible && Employee != null)
+{
+    <div class="modal-backdrop-custom" role="dialog" aria-modal="true" aria-labelledby="detailsDeleteTitle">
+        <div class="modal-dialog-custom card shadow-lg">
+            <div class="card-header bg-danger text-white">
+                <h2 id="detailsDeleteTitle" class="h5 mb-0">Confirm Deletion</h2>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">
+                    Delete <strong>@Employee.FirstName @Employee.LastName</strong>?
+                </p>
+            </div>
+            <div class="card-footer bg-white d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary btn-sm" disabled="@IsDeleting" @onclick="CancelDelete">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" disabled="@IsDeleting" @onclick="ConfirmDeleteAsync">
+                    @(IsDeleting ? "Deleting..." : "Confirm Delete")
+                </button>
+            </div>
+        </div>
+    </div>
+}

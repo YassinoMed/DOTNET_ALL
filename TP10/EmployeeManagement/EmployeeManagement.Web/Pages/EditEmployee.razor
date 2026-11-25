@@ -1,0 +1,176 @@
+@page "/editemployee/{Id}"
+@page "/editemployee"
+@inherits EditEmployeeBase
+
+<PageTitle>@(IsCreateMode ? "Add Employee" : "Edit Employee")</PageTitle>
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="">Home</a></li>
+        <li class="breadcrumb-item"><a href="EmployeeList">Employee List</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@(IsCreateMode ? "Add Employee" : "Edit Employee")</li>
+    </ol>
+</nav>
+
+@if (IsLoading)
+{
+    <div class="d-flex align-items-center gap-2 py-5 justify-content-center" role="status" aria-live="polite">
+        <div class="spinner-border text-primary" aria-hidden="true"></div>
+        <span>Loading employee form...</span>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(ErrorMessage) && Employee.EmployeeId == 0 && !IsCreateMode)
+{
+    <div class="alert alert-danger" role="alert">
+        <h2 class="h5 mb-2">Cannot open employee</h2>
+        <p class="mb-3">@ErrorMessage</p>
+        <a href="EmployeeList" class="btn btn-primary btn-sm">Back to Employee List</a>
+    </div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h1 class="h3 mb-0">@(IsCreateMode ? "Add Employee" : "Edit Employee")</h1>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">@ErrorMessage</div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(SuccessMessage))
+                    {
+                        <div class="alert alert-success" role="status">@SuccessMessage</div>
+                    }
+
+                    <EditForm Model="@Employee" OnValidSubmit="HandleValidSubmitAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger mb-3" />
+
+                        <div class="row mb-4 align-items-center photo-upload-box p-3 rounded border bg-light">
+                            <div class="col-sm-3 text-center mb-3 mb-sm-0">
+                                <img src="@DisplayedPhotoUrl"
+                                     onerror="this.onerror=null;this.src='images/avatar-default.svg';"
+                                     alt="Employee profile preview"
+                                     class="edit-photo-preview" />
+                            </div>
+                            <div class="col-sm-9">
+                                <h2 class="h6 mb-1">Profile Photo</h2>
+                                <p class="text-muted small mb-2">
+                                    Allowed formats: JPG, JPEG, PNG, WebP (max 2 MB).
+                                </p>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <label for="photoUpload" class="btn btn-outline-primary btn-sm mb-0">
+                                        @(HasCustomOrStagedPhoto ? "Replace Photo" : "Select Photo")
+                                    </label>
+                                    <InputFile id="photoUpload"
+                                               class="visually-hidden"
+                                               accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                               OnChange="HandlePhotoSelectedAsync" />
+
+                                    @if (HasStagedPhoto)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CancelStagedPhoto">
+                                            Revert Selection
+                                        </button>
+                                    }
+
+                                    @if (HasCustomOrStagedPhoto)
+                                    {
+                                        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="RemovePhoto">
+                                            Remove Photo
+                                        </button>
+                                    }
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(PhotoErrorMessage))
+                                {
+                                    <div class="text-danger small mt-2" role="alert">@PhotoErrorMessage</div>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(PhotoFeedbackMessage))
+                                {
+                                    <div class="text-success small mt-2" role="status">@PhotoFeedbackMessage</div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="firstName" class="col-sm-3 col-form-label">First Name</label>
+                            <div class="col-sm-9">
+                                <InputText id="firstName" class="form-control" placeholder="First Name"
+                                           @bind-Value="Employee.FirstName" />
+                                <ValidationMessage For="@(() => Employee.FirstName)" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="lastName" class="col-sm-3 col-form-label">Last Name</label>
+                            <div class="col-sm-9">
+                                <InputText id="lastName" class="form-control" placeholder="Last Name"
+                                           @bind-Value="Employee.LastName" />
+                                <ValidationMessage For="@(() => Employee.LastName)" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="email" class="col-sm-3 col-form-label">Email</label>
+                            <div class="col-sm-9">
+                                <InputText id="email" type="email" class="form-control" placeholder="Email"
+                                           @bind-Value="Employee.Email" />
+                                <ValidationMessage For="@(() => Employee.Email)" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="dateOfBirth" class="col-sm-3 col-form-label">Date of Birth</label>
+                            <div class="col-sm-9">
+                                <InputDate id="dateOfBirth" class="form-control"
+                                           @bind-Value="Employee.DateOfBirth" />
+                                <ValidationMessage For="@(() => Employee.DateOfBirth)" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="gender" class="col-sm-3 col-form-label">Gender</label>
+                            <div class="col-sm-9">
+                                <InputSelect id="gender" class="form-select" @bind-Value="Employee.Gender">
+                                    @foreach (var gender in Enum.GetValues<Gender>())
+                                    {
+                                        <option value="@gender">@gender</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => Employee.Gender)" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <label for="department" class="col-sm-3 col-form-label">Department</label>
+                            <div class="col-sm-9">
+                                <InputSelect id="department" class="form-select" @bind-Value="Employee.DepartmentId">
+                                    <option value="0">-- Select Department --</option>
+                                    @foreach (var dept in Departments)
+                                    {
+                                        <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => Employee.DepartmentId)" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" disabled="@IsSubmitting" @onclick="Cancel">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@IsSubmitting">
+                                @(IsSubmitting ? "Saving..." : "Save")
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
